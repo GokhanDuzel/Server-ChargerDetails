@@ -69,3 +69,40 @@ def get_charging_station(id):
 
     except requests.exceptions.RequestException as e:
         return jsonify({'error': 'API request error'}), 500
+    
+
+######################################################################
+# RETURN CHARGING STATION LOCATIONS IN CANADA 
+######################################################################
+@app.route('/charging-locations', methods=['GET'])
+def get_charging_station_locations():
+    params = {
+        'key': API_KEY,
+        'countrycode': 'CA',
+        'latitude': 45.4215,
+        'longitude': -75.6972,
+        'distance': 50,  # Search within 50 km radius
+        'maxresults': 500
+    }
+
+    try:
+        # Make an HTTP GET request to the Open Charge Map API
+        response = requests.get(OPEN_CHARGE_MAP_API_URL, params=params)
+
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            # Parse the JSON response data
+            data = response.json()
+            # town_names = [station['AddressInfo']['Town'] for station in data if 'Town' in station['AddressInfo']]
+            stations = [[station["ID"], station["AddressInfo"]["Latitude"], station["AddressInfo"]["Longitude"]] 
+            for station in data if "AddressInfo" in station and station["AddressInfo"] is not None]
+
+
+            return (stations)  # Return only the town names
+
+        # If the request was not successful, handle the error
+        else:
+            return jsonify({'error': 'API request failed'}), response.status_code
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': 'API request error'}), 500
